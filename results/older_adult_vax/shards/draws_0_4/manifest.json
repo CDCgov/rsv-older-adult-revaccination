@@ -1,0 +1,203 @@
+{
+  "scenario": "older_adult_vax_main",
+  "config": "/scicomp/home-pure/ac65/Downloads/rsvepimodel/configs/scenarios/older_adult_vax/main.yaml",
+  "static": "/scicomp/home-pure/ac65/Downloads/rsvepimodel/data/static/static_compiled_default.generated.npz",
+  "groupmap": "/scicomp/home-pure/ac65/Downloads/rsvepimodel/data/compiled/group_map_v3.4.generated.npz",
+  "posterior": "/scicomp/home-pure/ac65/Downloads/rsvepimodel/pandemic_posterior_draw_wave008_k5000_seed123.npz",
+  "posterior_source_kind": "paired_imis",
+  "posterior_source_root": "results\\imis_pandemic_generated\\range_updated",
+  "posterior_source_wave": 8,
+  "posterior_source_scope": "full",
+  "posterior_ess": 6063.061039659253,
+  "posterior_has_contact_scales": true,
+  "contact_scales_mode": "posterior",
+  "posterior_contact_periods": [
+    {
+      "index": 1,
+      "start": "2020-04-01",
+      "end": "2020-12-01",
+      "baseline": 0.8,
+      "lower": 0.6,
+      "upper": 1.0
+    },
+    {
+      "index": 2,
+      "start": "2020-12-01",
+      "end": "2021-09-01",
+      "baseline": 0.9,
+      "lower": 0.7,
+      "upper": 1.0
+    },
+    {
+      "index": 3,
+      "start": "2021-09-01",
+      "end": "2021-11-01",
+      "baseline": 0.85,
+      "lower": 0.6,
+      "upper": 1.0
+    },
+    {
+      "index": 4,
+      "start": "2021-11-01",
+      "end": "2022-04-01",
+      "baseline": 0.8,
+      "lower": 0.7,
+      "upper": 1.0
+    }
+  ],
+  "simulation_start_date": "2016-09-26",
+  "outcome_start_date": "2023-09-01",
+  "horizon_end": "2033-09-01",
+  "horizon_days": 6184,
+  "outcome_start_day": 2531,
+  "outcome_rate_metric": "events_per_1000_person_years_alive",
+  "person_years_days_per_year": 365.25,
+  "case_outcome": "symptomatic RSV cases from exposed compartments to infectious compartments (E to I)",
+  "death_outcome": "RSV disease deaths from hospitalized compartments to D",
+  "hospitalization_timeseries_file": "hospitalizations_timeseries_vaccinated_weekly.npz",
+  "hospitalization_timeseries_group": "vaccinated_primary",
+  "hospitalization_timeseries_frequency": "weekly",
+  "burn_years": 20,
+  "dose2_intervals": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "boost_recovery_curves": [
+    "scenario_a",
+    "scenario_b",
+    "scenario_c"
+  ],
+  "ve_waning_curve": "fixed_sigmoid_stoh",
+  "hospitalization_waning_curve": "fixed_sigmoid_stoh",
+  "hospitalization_waning_curve_config": {
+    "family": "fixed_sigmoid",
+    "ymax": 1.0,
+    "ymin": 0.0,
+    "xmid_days": 442.0,
+    "tau_days": 320.0
+  },
+  "include_no_revaccination": true,
+  "verify_no_revaccination": false,
+  "resume": true,
+  "outcome_state_cache_dir": "/scicomp/home-pure/ac65/Downloads/rsvepimodel/results/scenarios/older_adult_vax/full_5000_draws_wave8/shards/outcome_state_cache",
+  "outcome_state_cache_day": 2531,
+  "outcome_state_cache_date": "2023-09-01",
+  "run_plan": [
+    {
+      "boost_recovery_curve": "no_revaccination",
+      "boost_scenario": "none",
+      "k_years": 0,
+      "dose2_interval_years": 0,
+      "is_no_revaccination": true
+    },
+    {
+      "boost_recovery_curve": "scenario_a",
+      "boost_scenario": "scenario_a",
+      "k_years": 1,
+      "dose2_interval_years": 1,
+      "is_no_revaccination": false
+    },
+    {
+      "boost_recovery_curve": "scenario_a",
+      "boost_scenario": "scenario_a",
+      "k_years": 2,
+      "dose2_interval_years": 2,
+      "is_no_revaccination": false
+    },
+    {
+      "boost_recovery_curve": "scenario_a",
+      "boost_scenario": "scenario_a",
+      "k_years": 3,
+      "dose2_interval_years": 3,
+      "is_no_revaccination": false
+    },
+    {
+      "boost_recovery_curve": "scenario_a",
+      "boost_scenario": "scenario_a",
+      "k_years": 4,
+      "dose2_interval_years": 4,
+      "is_no_revaccination": false
+    },
+    {
+      "boost_recovery_curve": "scenario_a",
+      "boost_scenario": "scenario_a",
+      "k_years": 5,
+      "dose2_interval_years": 5,
+      "is_no_revaccination": false
+    },
+    {
+      "boost_recovery_curve": "scenario_b",
+      "boost_scenario": "scenario_b",
+      "k_years": 1,
+      "dose2_interval_years": 1,
+      "is_no_revaccination": false
+    },
+    {
+      "boost_recovery_curve": "scenario_b",
+      "boost_scenario": "scenario_b",
+      "k_years": 2,
+      "dose2_interval_years": 2,
+      "is_no_revaccination": false
+    },
+    {
+      "boost_recovery_curve": "scenario_b",
+      "boost_scenario": "scenario_b",
+      "k_years": 3,
+      "dose2_interval_years": 3,
+      "is_no_revaccination": false
+    },
+    {
+      "boost_recovery_curve": "scenario_b",
+      "boost_scenario": "scenario_b",
+      "k_years": 4,
+      "dose2_interval_years": 4,
+      "is_no_revaccination": false
+    },
+    {
+      "boost_recovery_curve": "scenario_b",
+      "boost_scenario": "scenario_b",
+      "k_years": 5,
+      "dose2_interval_years": 5,
+      "is_no_revaccination": false
+    },
+    {
+      "boost_recovery_curve": "scenario_c",
+      "boost_scenario": "scenario_c",
+      "k_years": 1,
+      "dose2_interval_years": 1,
+      "is_no_revaccination": false
+    },
+    {
+      "boost_recovery_curve": "scenario_c",
+      "boost_scenario": "scenario_c",
+      "k_years": 2,
+      "dose2_interval_years": 2,
+      "is_no_revaccination": false
+    },
+    {
+      "boost_recovery_curve": "scenario_c",
+      "boost_scenario": "scenario_c",
+      "k_years": 3,
+      "dose2_interval_years": 3,
+      "is_no_revaccination": false
+    },
+    {
+      "boost_recovery_curve": "scenario_c",
+      "boost_scenario": "scenario_c",
+      "k_years": 4,
+      "dose2_interval_years": 4,
+      "is_no_revaccination": false
+    },
+    {
+      "boost_recovery_curve": "scenario_c",
+      "boost_scenario": "scenario_c",
+      "k_years": 5,
+      "dose2_interval_years": 5,
+      "is_no_revaccination": false
+    }
+  ],
+  "draw_rows": 5
+}

@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "older-adult-vax-manuscript-code"
+version = "0.1.0"
+description = "Manuscript-facing older-adult vaccination postprocessing code"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+
+dependencies = [
+    "numpy>=1.23",
+    "pandas>=1.5",
+    "matplotlib>=3.7",
+]
+
+[tool.setuptools]
+py-modules = []
