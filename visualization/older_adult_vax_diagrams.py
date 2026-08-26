@@ -1,3 +1,10 @@
+"""Create the combined older-adult RSV revaccination outcome figure.
+
+The script reads merged draw-level outcomes and paired relative differences,
+then plots hospitalizations, cases, and deaths for the specified recovery
+curves and dose-2 intervals. 
+"""
+
 import argparse
 from pathlib import Path
 
@@ -8,7 +15,8 @@ from matplotlib.gridspec import GridSpec
 from matplotlib.lines import Line2D
 
 
-# These are the settings used for the combined figure.
+# Restrict the figure to the primary vaccinated group and the scenario labels
+# emitted by the analytical pipeline. These labels must match the input tables.
 GROUP = "vaccinated_primary"
 OUTCOMES = ["hospitalizations", "cases", "deaths"]
 CURVES = ["scenario_a", "scenario_b", "scenario_c"]
@@ -17,6 +25,9 @@ SCALE = "per100k"
 REFERENCE_CURVE = "no_revaccination"
 RATE_METRIC = "per1000_py_alive"
 
+# Map scenario and outcome values in the input tables to their display labels
+# and plotting styles. OUTCOME_COLUMNS specifies the derived rate field used
+# for each absolute-outcome panel.
 SCENARIO_STYLES = {
     "scenario_a": ("Scenario A", "#0072B2"),
     "scenario_b": ("Scenario B", "#009E73"),
@@ -37,6 +48,8 @@ OUTCOME_COLUMNS = {
 
 SCALE_LABEL = "per 100,000 person-years alive"
 
+# Keep figure dimensions and typography explicit so the generated PNG is
+# reproducible across supported matplotlib installations.
 PUBLICATION_DPI = 600
 FIG_WIDTH_PER_COLUMN = 3.85
 FIG_LEFT_MARGIN = 1.8
@@ -51,8 +64,8 @@ ROW_RELATIVE_SIZE = 13.0
 LEGEND_SIZE = 13.0
 
 
-def read_summary_draws(results_dir):
-    """Load outcome counts and convert them to rates per 100,000 person-years alive."""
+def read_summary_draws(results_dir: Path) -> pd.DataFrame:
+    """Load counts and calculate per-100,000 person-years-alive outcome rates."""
     path = results_dir / "summary_draws.csv"
     columns = [
         "group",
@@ -73,8 +86,8 @@ def read_summary_draws(results_dir):
     return draws
 
 
-def read_relative_difference_draws(results_dir):
-    """Load relative differences for the per-1,000 person-years-alive metric."""
+def read_relative_difference_draws(results_dir: Path) -> pd.DataFrame:
+    """Load positive-K paired differences for the selected rate metric."""
     path = results_dir / "analysis_tables" / "relative_difference_draws.csv"
     columns = [
         "boost_recovery_curve",
@@ -90,7 +103,7 @@ def read_relative_difference_draws(results_dir):
     return draws
 
 
-def summarize(values):
+def summarize(values: np.ndarray) -> dict[str, float]:
     """Calculate the median, central 50% interval, and central 95% interval."""
     return {
         "median": np.median(values),
@@ -101,8 +114,13 @@ def summarize(values):
     }
 
 
-def summarize_outcome(draws, curve, interval, outcome):
-    """Summarize one absolute outcome for one curve and dose-2 interval."""
+def summarize_outcome(
+    draws: pd.DataFrame,
+    curve: str,
+    interval: int,
+    outcome: str,
+) -> dict[str, float]:
+    """Summarize one absolute outcome for a curve and dose-2 interval."""
     subset = draws[
         (draws["boost_recovery_curve"] == curve)
         & (draws["dose2_interval_years"] == interval)
@@ -112,8 +130,13 @@ def summarize_outcome(draws, curve, interval, outcome):
     return summarize(values)
 
 
-def summarize_relative_difference(draws, curve, interval, outcome):
-    """Summarize one relative difference for one curve and dose-2 interval."""
+def summarize_relative_difference(
+    draws: pd.DataFrame,
+    curve: str,
+    interval: int,
+    outcome: str,
+) -> dict[str, float]:
+    """Summarize paired relative differences for a curve and dose-2 interval."""
     subset = draws[
         (draws["boost_recovery_curve"] == curve)
         & (draws["k_years"] == interval)
@@ -124,8 +147,11 @@ def summarize_relative_difference(draws, curve, interval, outcome):
     return summarize(values)
 
 
-def summarize_reference(draws, outcome):
-    """Summarize the no-revaccination reference for one outcome."""
+def summarize_reference(
+    draws: pd.DataFrame,
+    outcome: str,
+) -> dict[str, float]:
+    """Summarize the no-revaccination reference distribution for one outcome."""
     subset = draws[
         (draws["boost_recovery_curve"] == REFERENCE_CURVE)
         & (draws["dose2_interval_years"] == 0)
@@ -135,14 +161,28 @@ def summarize_reference(draws, outcome):
     return summarize(values)
 
 
-def draw_interval(ax, x, stats, color, size):
+def draw_interval(ax, x, stats: dict[str, float], color: str, size: float) -> None:
     """Draw a 95% interval, 50% interval, and median point on an axis."""
-    ax.vlines(x, stats["lo95"], stats["hi95"], color=color, alpha=0.55, linewidth=1.1)
+    ax.vlines(
+        x,
+        stats["lo95"],
+        stats["hi95"],
+        color=color,
+        alpha=0.55,
+        linewidth=1.1,
+    )
     ax.vlines(x, stats["lo50"], stats["hi50"], color=color, linewidth=3.0)
-    ax.scatter([x], [stats["median"]], color=color, edgecolor="white", linewidth=0.6, s=size)
+    ax.scatter(
+        [x],
+        [stats["median"]],
+        color=color,
+        edgecolor="white",
+        linewidth=0.6,
+        s=size,
+    )
 
 
-def style_outcome_axis(ax):
+def style_outcome_axis(ax) -> None:
     """Apply the common formatting used by absolute-outcome panels."""
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
@@ -153,7 +193,7 @@ def style_outcome_axis(ax):
     ax.tick_params(axis="x", labelbottom=False)
 
 
-def style_relative_axis(ax, show_x_labels):
+def style_relative_axis(ax, show_x_labels: bool) -> None:
     """Apply the common formatting used by relative-difference panels."""
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
@@ -169,7 +209,7 @@ def style_relative_axis(ax, show_x_labels):
         ax.tick_params(axis="x", labelbottom=False)
 
 
-def add_panel_label(ax, label):
+def add_panel_label(ax, label: str) -> None:
     """Add a lettered panel label to an axis."""
     ax.text(
         -0.19,
@@ -183,8 +223,8 @@ def add_panel_label(ax, label):
     )
 
 
-def plot_figure(results_dir, outdir):
-    """Read the result tables, draw the multi-panel figure, and save it."""
+def plot_figure(results_dir: Path, outdir: Path) -> None:
+    """Read analytical tables, draw the multi-panel figure, and save the PNG."""
     outcome_draws = read_summary_draws(results_dir)
     relative_draws = read_relative_difference_draws(results_dir)
 
@@ -226,25 +266,46 @@ def plot_figure(results_dir, outdir):
 
         for curve in CURVES:
             for interval in INTERVALS:
-                outcome_stats = summarize_outcome(outcome_draws, curve, interval, outcome)
+                outcome_stats = summarize_outcome(
+                    outcome_draws,
+                    curve,
+                    interval,
+                    outcome,
+                )
                 relative_stats = summarize_relative_difference(
                     relative_draws, curve, interval, outcome
                 )
                 outcome_values.extend(
-                    [outcome_stats["lo95"], outcome_stats["hi95"], outcome_stats["median"]]
+                    [
+                        outcome_stats["lo95"],
+                        outcome_stats["hi95"],
+                        outcome_stats["median"],
+                    ]
                 )
                 relative_values.extend(
-                    [relative_stats["lo95"], relative_stats["hi95"], relative_stats["median"]]
+                    [
+                        relative_stats["lo95"],
+                        relative_stats["hi95"],
+                        relative_stats["median"],
+                    ]
                 )
 
             reference_stats = summarize_reference(outcome_draws, outcome)
             outcome_values.extend(
-                [reference_stats["lo95"], reference_stats["hi95"], reference_stats["median"]]
+                [
+                    reference_stats["lo95"],
+                    reference_stats["hi95"],
+                    reference_stats["median"],
+                ]
             )
 
         outcome_min = min(0, min(outcome_values))
         outcome_max = max(outcome_values)
-        outcome_padding = max((outcome_max - outcome_min) * 0.12, outcome_max * 0.04, 1.0)
+        outcome_padding = max(
+            (outcome_max - outcome_min) * 0.12,
+            outcome_max * 0.04,
+            1.0,
+        )
         outcome_limits = (
             outcome_min - 0.05 * outcome_padding,
             outcome_max + outcome_padding,
@@ -269,7 +330,12 @@ def plot_figure(results_dir, outdir):
                 for interval in INTERVALS
             ]
             relative_stats = [
-                summarize_relative_difference(relative_draws, curve, interval, outcome)
+                summarize_relative_difference(
+                    relative_draws,
+                    curve,
+                    interval,
+                    outcome,
+                )
                 for interval in INTERVALS
             ]
             outcome_medians = np.array([stats["median"] for stats in outcome_stats])
@@ -364,11 +430,50 @@ def plot_figure(results_dir, outdir):
         )
 
     legend_items = [
-        Line2D([0], [0], color="#1A1A1A", marker="o", linestyle="none", markersize=8.0, label="No dose 2 reference"),
-        Line2D([0], [0], color="#666666", marker="o", linestyle="none", markersize=8.0, label="Posterior median"),
-        Line2D([0], [0], color="#666666", linewidth=4.0, label="50% credible interval"),
-        Line2D([0], [0], color="#666666", linewidth=1.8, alpha=0.55, label="95% credible interval"),
-        Line2D([0], [0], color="#666666", marker="*", linestyle="none", markerfacecolor="white", markeredgewidth=1.5, markersize=14, label="K with lowest posterior median"),
+        Line2D(
+            [0],
+            [0],
+            color="#1A1A1A",
+            marker="o",
+            linestyle="none",
+            markersize=8.0,
+            label="No dose 2 reference",
+        ),
+        Line2D(
+            [0],
+            [0],
+            color="#666666",
+            marker="o",
+            linestyle="none",
+            markersize=8.0,
+            label="Posterior median",
+        ),
+        Line2D(
+            [0],
+            [0],
+            color="#666666",
+            linewidth=4.0,
+            label="50% credible interval",
+        ),
+        Line2D(
+            [0],
+            [0],
+            color="#666666",
+            linewidth=1.8,
+            alpha=0.55,
+            label="95% credible interval",
+        ),
+        Line2D(
+            [0],
+            [0],
+            color="#666666",
+            marker="*",
+            linestyle="none",
+            markerfacecolor="white",
+            markeredgewidth=1.5,
+            markersize=14,
+            label="K with lowest posterior median",
+        ),
     ]
     figure.legend(
         handles=legend_items,
@@ -390,15 +495,15 @@ def plot_figure(results_dir, outdir):
         bbox_inches="tight",
         facecolor="white",
     )
-    
+
     plt.close(figure)
 
     print(f"Wrote {output_stem}.png")
 
 
 
-def main():
-    """Read command-line paths and create the combined figure."""
+def main() -> None:
+    """Read command-line paths and create the combined outcome figure."""
     parser = argparse.ArgumentParser(
         description="Create the combined older-adult vaccination outcome figure."
     )
