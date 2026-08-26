@@ -1,4 +1,9 @@
-"""Create summary tables from older-adult vaccination draw results."""
+"""Create analytical summary tables from older-adult vaccination draw results.
+
+The script reads merged draw-level outcome rates, creates a K=0
+no-revaccination comparator for each recovery curve, and writes absolute and
+paired relative-difference summaries with median and central 95% intervals.
+"""
 
 import argparse
 from pathlib import Path
@@ -7,19 +12,22 @@ import numpy as np
 import pandas as pd
 
 
+# These rate fields are reshaped and summarized for every draw and population
+# group. Their names must match the rate columns retained by the merge script.
 OUTCOMES = ["infections", "cases", "hospitalizations", "deaths"]
 RATE_COLUMNS = [f"{outcome}_per1000_py_alive" for outcome in OUTCOMES]
+# These labels must match the positive-K recovery curves in summary_draws.csv.
 SCENARIO_CURVES = ["scenario_a", "scenario_b", "scenario_c"]
 NO_REVACCINATION_CURVE = "no_revaccination"
 
 
-def read_draws(results_dir):
+def read_draws(results_dir: Path) -> pd.DataFrame:
     """Load the merged draw-level CSV file from a results directory."""
     return pd.read_csv(results_dir / "summary_draws.csv")
 
 
-def make_long_table(draws):
-    """Reshape four rate columns into one row per draw and outcome."""
+def make_long_table(draws: pd.DataFrame) -> pd.DataFrame:
+    """Reshape outcome-rate fields into one row per draw and outcome."""
     id_columns = [
         "draw_row",
         "scenario",
@@ -43,8 +51,8 @@ def make_long_table(draws):
     return long_table
 
 
-def add_baseline_for_each_curve(long_table):
-    """Copy the no-revaccination rows so every curve has a K=0 comparator."""
+def add_baseline_for_each_curve(long_table: pd.DataFrame) -> pd.DataFrame:
+    """Copy K=0 rows so each recovery curve has a paired comparator."""
     baseline = long_table[
         (long_table["k_years"] == 0)
         & (long_table["boost_recovery_curve"] == NO_REVACCINATION_CURVE)
@@ -61,7 +69,7 @@ def add_baseline_for_each_curve(long_table):
     return pd.concat([comparisons, *baseline_copies], ignore_index=True)
 
 
-def interval_summary(values):
+def interval_summary(values: np.ndarray) -> dict[str, float]:
     """Calculate the median and central 95% interval for an array of values."""
     return {
         "median": float(np.median(values)),
@@ -70,8 +78,8 @@ def interval_summary(values):
     }
 
 
-def absolute_summary(long_table):
-    """Calculate outcome medians and 95% intervals for each scenario group."""
+def absolute_summary(long_table: pd.DataFrame) -> pd.DataFrame:
+    """Calculate outcome medians and 95% intervals by scenario and group."""
     group_columns = [
         "boost_recovery_curve",
         "boost_scenario",
@@ -92,8 +100,8 @@ def absolute_summary(long_table):
     return pd.DataFrame(rows)
 
 
-def relative_difference_draws(long_table):
-    """Compare each positive-K draw with its matching K=0 draw."""
+def relative_difference_draws(long_table: pd.DataFrame) -> pd.DataFrame:
+    """Compare every positive-K draw with its matching K=0 baseline draw."""
     key_columns = ["draw_row", "boost_recovery_curve", "group", "outcome"]
     baseline = long_table[long_table["k_years"] == 0][
         key_columns + ["value_rate"]
@@ -108,8 +116,8 @@ def relative_difference_draws(long_table):
     return relative
 
 
-def relative_difference_summary(relative_draws):
-    """Calculate medians and 95% intervals for relative differences."""
+def relative_difference_summary(relative_draws: pd.DataFrame) -> pd.DataFrame:
+    """Calculate medians and 95% intervals of paired relative differences."""
     group_columns = [
         "boost_recovery_curve",
         "boost_scenario",
@@ -130,8 +138,8 @@ def relative_difference_summary(relative_draws):
     return pd.DataFrame(rows)
 
 
-def main():
-    """Read the results directory and write the three summary tables."""
+def main() -> None:
+    """Read merged results and write the three analytical output tables."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--results-dir", type=Path, required=True)
     args = parser.parse_args()
