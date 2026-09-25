@@ -213,8 +213,8 @@ Please refer to [CDC's Template Repository](https://github.com/CDCgov/template) 
 
 Xinmeng Zhao, PhD, Michael Melgar, MD, Diya Surie, MD, Jefferson Jones, MD MPH, Emily D. Carter, PhD, Amadea Britton, MD, Ismael R. Ortega-Sanchez, PhD, Heidi Moline, MD, Brian Gurbaxani, PhD, Phillip P. Salvatore, PhD SM. *Optimal Timing of Revaccination against Respiratory Syncytial Virus among Older Adults in the U.S. – a Transmission Modeling Study.*
 
-# Disclaimer
+## Disclaimer
 The findings and conclusions in the above reference are those of the authors and do not necessarily represent the official position of the Centers for Disease Control and Prevention.
 
-# Generative AI use
+## Generative AI use
 ChatGPT 5.6 was used to clean, debug, and comment the code. X.Z. reviewed, tested, and validated all code and takes full responsibility for its content.
